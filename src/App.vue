@@ -1,18 +1,9 @@
 <template>
   <v-app :theme="theme">
-    <v-app-bar :color="theme === 'light' ? 'primary' : 'primary'" dark>
-      <v-app-bar-title>สวนสวย</v-app-bar-title>
-      <v-spacer></v-spacer>
-      <v-btn icon @click="toggleTheme">
-        <v-icon>{{ theme === 'light' ? 'mdi-weather-night' : 'mdi-weather-sunny' }}</v-icon>
-      </v-btn>
-      <v-btn variant="text" href="#home">หน้าแรก</v-btn>
-      <v-btn variant="text" href="#about">เกี่ยวกับเรา</v-btn>
-      <v-btn variant="text" href="#portfolio">ผลงาน</v-btn>
-      <v-btn variant="text" href="#services">บริการ</v-btn>
-      <v-btn variant="text" href="#testimonials">รีวิว</v-btn>
-      <v-btn variant="text" href="#contact">ติดต่อเรา</v-btn>
-    </v-app-bar>
+    <TheNavbar 
+      :theme="theme"
+      @toggle-theme="toggleTheme"
+    />
 
     <v-main :class="theme === 'light' ? 'bg-background' : 'bg-background'">
       <v-container fluid class="pa-0">
@@ -508,24 +499,82 @@
       </v-container>
     </v-main>
 
-    <v-footer color="primary" class="text-center d-flex flex-column">
-      <div>
-        <v-btn
-          v-for="icon in icons"
-          :key="icon"
-          :icon="icon"
-          variant="text"
-        ></v-btn>
-      </div>
-      <div class="text-h6 mt-4">
-        &copy; {{ new Date().getFullYear() }} สวนสวย. สงวนลิขสิทธิ์.
-      </div>
-    </v-footer>
+    <TheFooter />
+
+    <!-- Floating Action Menu -->
+<!-- Floating Action Menu -->
+<div class="floating-menu">
+  <transition-group name="menu-expand">
+    <template v-if="isMenuExpanded">
+      <v-btn
+        v-for="(item, index) in menuItems"
+        :key="item.title"
+        :color="item.color"
+        :href="item.action"
+        target="_blank"
+        icon
+        elevation="2"
+        class="floating-menu-item mb-2"
+        :style="`transform-origin: bottom left; transition-delay: ${index * 0.05}s`"
+      >
+        <v-icon>{{ item.icon }}</v-icon>
+        <span class="floating-menu-label">{{ item.title }}</span>
+      </v-btn>
+    </template>
+  </transition-group>
+
+  <!-- Main Toggle Button -->
+  <v-btn
+    class="floating-menu-toggle"
+    color="primary"
+    size="x-large"
+    icon
+    elevation="4"
+    @click="toggleMenu"
+  >
+    <v-icon>{{ isMenuExpanded ? 'mdi-close' : 'mdi-message-text' }}</v-icon>
+  </v-btn>
+</div>
+
+    <!-- Contact Dialog -->
+    <v-dialog v-model="showContactDialog" max-width="400">
+      <v-card class="contact-dialog pa-4">
+        <div class="d-flex justify-space-between align-center mb-4">
+          <div class="text-h6">บริษัทที่นี่เลยค่ะ</div>
+          <v-btn icon @click="showContactDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </div>
+        <v-img
+          src="/logo.png"
+          width="64"
+          height="64"
+          class="mb-4 rounded-circle mx-auto"
+        ></v-img>
+        <div class="text-subtitle-1 text-center mb-4">Modern Landscape Design</div>
+        <v-list>
+          <v-list-item
+            v-for="(contact, index) in quickContacts"
+            :key="index"
+            :href="contact.action"
+            target="_blank"
+            class="mb-2"
+          >
+            <template v-slot:prepend>
+              <v-icon :color="contact.color">{{ contact.icon }}</v-icon>
+            </template>
+            <v-list-item-title>{{ contact.title }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import TheNavbar from '@/components/TheNavbar.vue'
+import TheFooter from '@/components/TheFooter.vue'
 import BaseHeader from '@/components/BaseHeader.vue'
 import BaseText from '@/components/BaseText.vue'
 
@@ -575,8 +624,6 @@ const socials = [
   { name: 'LINE', color: '#00B900', icon: 'mdi-line' },
   { name: 'Instagram', color: '#E1306C', icon: 'mdi-instagram' }
 ]
-
-const icons = ['mdi-facebook', 'mdi-line', 'mdi-instagram']
 
 const gardens = [
   {
@@ -684,6 +731,74 @@ const openGardenDialog = (garden) => {
   selectedGarden.value = garden
   showGardenDialog.value = true
 }
+
+const showContactDialog = ref(false)
+
+const quickContacts = [
+  {
+    title: 'โทร: 099-999-9999',
+    icon: 'mdi-phone',
+    action: 'tel:0999999999',
+    color: 'green'
+  },
+  {
+    title: 'Line: @suansua',
+    icon: 'mdi-line',
+    action: 'https://line.me/ti/p/@suansua',
+    color: '#00B900'
+  },
+  {
+    title: 'Facebook: สวนสวย',
+    icon: 'mdi-facebook',
+    action: 'https://facebook.com/suansua',
+    color: '#4267B2'
+  }
+]
+
+const isMenuExpanded = ref(false)
+
+const toggleMenu = () => {
+  isMenuExpanded.value = !isMenuExpanded.value
+}
+
+const menuItems = [
+  {
+    title: 'Instagram',
+    icon: 'mdi-instagram',
+    action: 'https://instagram.com/your-account',
+    color: '#E4405F'
+  },
+  {
+    title: 'พูดคุยผ่าน Facebook',
+    icon: 'mdi-facebook-messenger',
+    action: 'https://m.me/your-page',
+    color: '#0078FF'
+  },
+  {
+    title: 'พูดคุยผ่าน Line',
+    icon: 'mdi-line',
+    action: 'https://line.me/ti/p/@your-line',
+    color: '#00B900'
+  },
+  {
+    title: 'ผ่านอีเมลเพิ่มเติม',
+    icon: 'mdi-email',
+    action: 'mailto:your@email.com',
+    color: '#EA4335'
+  },
+  {
+    title: 'โทรหาเรา',
+    icon: 'mdi-phone',
+    action: 'tel:0999999999',
+    color: '#34A853'
+  },
+  {
+    title: 'Powered by Autodigi',
+    icon: 'mdi-robot',
+    action: '#',
+    color: '#4CAF50'
+  }
+]
 </script>
 
 <style>
@@ -1051,5 +1166,67 @@ html {
 
 :deep(.v-theme--dark) .glass-effect:hover {
   background: rgba(0, 0, 0, 0.4) !important;
+}
+
+.floating-menu {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.floating-menu-toggle {
+  width: 64px !important;
+  height: 64px !important;
+  border-radius: 50% !important;
+  transition: transform 0.3s ease !important;
+}
+
+.floating-menu-item {
+  position: relative;
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50% !important;
+}
+
+.floating-menu-label {
+  position: absolute;
+  left: 64px;
+  background: white;
+  padding: 8px 16px;
+  border-radius: 24px;
+  font-size: 14px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.floating-menu-item:hover .floating-menu-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Animation for menu expansion */
+.menu-expand-enter-active,
+.menu-expand-leave-active {
+  transition: all 0.3s ease;
+}
+
+.menu-expand-enter-from,
+.menu-expand-leave-to {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* Dark mode adjustment */
+:deep(.v-theme--dark) .floating-menu-label {
+  background: #1E1E1E;
+  color: white;
 }
 </style>
